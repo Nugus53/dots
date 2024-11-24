@@ -35,10 +35,7 @@ declare variable $G:webapp := file:parent(file:base-dir());
 
 (:~ Variable pour accéder au registre (documentRegister)  qui liste les passages citables:)
 (: ../../../../../transform/hteiml/tei2html.xsl :)
-declare variable $G:xsl := map{'html': map{'Content-Type' : 'text/html', 'method':'xml','xsl':concat($G:webapp, "/static/transform/"); }, 
-      'text': map{'Content-Type' : 'text/plain', 'method':'text', 'xsl':concat($G:webapp, "/static/transform/"); },  
-  }
-
+declare variable $G:xsl := json-doc('xsltMapping.json');
 
 declare variable $G:dbSwitchValidation := concat($G:webapp, "dots/schema/dots_db_switcher.rng");
 

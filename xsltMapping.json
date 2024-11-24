@@ -1,0 +1,12 @@
+{
+ "html": {
+  "Content-Type": "text/html",
+  "method": "xml",
+  "xsl": "https://gitlab.huma-num.fr/jnuguet/testxslt/-/raw/main/tei2html.xsl"
+ },
+ "text": {
+  "Content-Type": "text/plain",
+  "method": "text",
+  "xsl": "https://gitlab.huma-num.fr/jnuguet/testxslt/-/raw/main/tei2txt.xsl"
+ }
+}
