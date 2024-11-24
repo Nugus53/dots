@@ -162,7 +162,7 @@ function routes:document($resource as xs:string, $ref as xs:string, $start as xs
     return
       if ($dbName) 
       then 
-        let $result := utils:document($resource, $ref, $start, $end, $tree, $filter)
+        let $result := utils:document($resource, $ref, $start, $end, $tree, $filter, $excludeFragments)
         let $arg := map:entry('urlQuery',request:query())       
         return
           if ($mediaType)
@@ -170,7 +170,7 @@ function routes:document($resource as xs:string, $ref as xs:string, $start as xs
             if (map:contains($mapMedia,$mediaType))
             then(
                 let $contentType := map:get(map:get($mapMedia,$mediaType),'Content-Type')
-                let $style := concat($G:xsl,map:get(map:get($mapMedia,$mediaType),'xsl'))
+                let $style := map:get(map:get($mapMedia,$mediaType),'xsl')
                 let $result := switch (map:get(map:get($mapMedia,$mediaType),'method'))
                 case 'text' 
                    return xslt:transform-text($result, $style, $arg)
@@ -183,9 +183,9 @@ function routes:document($resource as xs:string, $ref as xs:string, $start as xs
                 <rest:response>
                   <http:response status="200">
                     <http:header name="Content-Type" value="{concat($contentType)}"/>
-                  </http:response>
+                  </http:response> 
                 </rest:response>,
-                 $result))
+                  $result))
             else(
                  <rest:response>
                   <http:response status="200">
