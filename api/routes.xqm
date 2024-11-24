@@ -150,6 +150,8 @@ declare
   %rest:query-param("filter", "{$filter}", "")
   %rest:query-param("excludeFragments", "{$excludeFragments}", false())
 function routes:document($resource as xs:string, $ref as xs:string, $start as xs:string, $end as xs:string, $tree as xs:string, $mediaType as xs:string, $filter, $excludeFragments as xs:boolean) {
+  let $mapMedia := $G:xsl
+  return 
   if (not($resource) or ($ref and ($start or $end)) or ($start and not($end)) or ($end and not($start)) or ($filter and $excludeFragments) )
   then
     let $message := "Error 400 : Bad request"
@@ -160,35 +162,38 @@ function routes:document($resource as xs:string, $ref as xs:string, $start as xs
     return
       if ($dbName) 
       then 
-        let $result := utils:document($resource, $ref, $start, $end, $tree, $filter, $excludeFragments)
+        let $result := utils:document($resource, $ref, $start, $end, $tree, $filter)
+        let $arg := map:entry('urlQuery',request:query())       
         return
           if ($mediaType)
           then 
-            let $f :=
-              switch ($mediaType)
-              case ($mediaType[. = "html"]) return "text/html;"
-              case ($mediaType[. = "txt"]) return "text/plain"
-              default return "application/tei+xml"
-            let $project := db:get($G:dots)//node()[@dtsResourceId = $resource]/@dbName
-            let $trans := 
-              if ($mediaType = "html")
-              then
-                let $style :=
-                  if (file:exists(concat($G:xsl, $dbName, "/", $dbName, ".xsl")))
-                  then concat($G:xsl, $dbName, "/", $dbName, ".xsl")
-                  else concat($G:xsl, "hteiml/tei2html.xsl")
-                return
-                  xslt:transform($result, $style)
-              else  $result
-            return
-              (
+            if (map:contains($mapMedia,$mediaType))
+            then(
+                let $contentType := map:get(map:get($mapMedia,$mediaType),'Content-Type')
+                let $style := concat($G:xsl,map:get(map:get($mapMedia,$mediaType),'xsl'))
+                let $result := switch (map:get(map:get($mapMedia,$mediaType),'method'))
+                case 'text' 
+                   return xslt:transform-text($result, $style, $arg)
+                case 'xml' 
+                   return xslt:transform($result, $style, $arg)
+               default
+                     return "unknown"
+                return 
+                (
                 <rest:response>
                   <http:response status="200">
-                    <http:header name="Content-Type" value="{concat($f, ' charset=utf-8')}"/>
+                    <http:header name="Content-Type" value="{concat($contentType)}"/>
                   </http:response>
                 </rest:response>,
-                $trans
-              )
+                 $result))
+            else(
+                 <rest:response>
+                  <http:response status="200">
+                    <http:header name="Content-Type" value="application/xml+tei"/>
+                  </http:response>
+                </rest:response>,
+                $result
+            )
           else
             $result
       else
